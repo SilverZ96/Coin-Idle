@@ -14,8 +14,24 @@
         .stat-value { font-weight: 600; font-size: 1.2rem; }
         .stat-value.coin { color: #b8860b; }
         .panel { display: flex; flex-direction: column; gap: 0.7rem; margin: 1.5rem 0; }
-        .upgrade-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; background: #fafafa; padding: 0.7rem 1.2rem; border-radius: 10px; border: 1px solid #eee; gap: 0.5rem; }
-        .upgrade-info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 1rem; flex: 1 1 auto; }
+        .upgrade-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: #fafafa;
+            padding: 0.7rem 1.2rem;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            gap: 0.5rem;
+        }
+        .upgrade-info {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 0.3rem 1rem;
+            flex: 1 1 auto;
+        }
         .upgrade-name { font-weight: 600; font-size: 1.05rem; }
         .upgrade-level { background: #eaeaea; padding: 0.1rem 0.6rem; border-radius: 20px; font-size: 0.9rem; }
         .upgrade-effect { font-size: 0.9rem; color: #2a6; font-weight: 500; }
@@ -37,13 +53,6 @@
         .btn-buy-all { background: #e8f0fe; border-color: #aac; font-size: 0.85rem; padding: 0.25rem 0.8rem; }
         .btn-buy-all:hover:not(:disabled) { background: #d0e0ff; }
         .reset-area { margin-top: 1.8rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
-        .perk-area { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ddd; }
-        .perk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.7rem; margin-top: 0.8rem; }
-        .perk-card { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 0.7rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
-        .perk-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .perk-name { font-weight: 600; }
-        .perk-effect { font-size: 0.9rem; color: #2a6; }
-        .perk-price { font-weight: 500; }
         .end-area { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
         .footer { margin-top: 2rem; font-size: 0.85rem; color: #888; }
         .threshold-hint { font-size: 0.9rem; color: #666; }
@@ -54,7 +63,6 @@
             .stats { gap: 0.8rem; }
             .upgrade-row { flex-direction: column; align-items: stretch; gap: 0.5rem; }
             .upgrade-info { justify-content: space-between; }
-            .perk-grid { grid-template-columns: 1fr; }
             .reset-area { flex-direction: column; align-items: stretch; }
             .action-group { flex-wrap: wrap; }
         }
@@ -63,6 +71,7 @@
 <body>
     <h1>⛏️ 矿镐 · 熔炉</h1>
 
+    <!-- 统计栏 -->
     <div class="stats" id="statsContainer">
         <div class="stat-item"><span class="stat-label">🪙 金币</span><span class="stat-value coin" id="coinDisplay">0</span></div>
         <div class="stat-item"><span class="stat-label">⚡ 每秒</span><span class="stat-value" id="rateDisplay">1.00</span></div>
@@ -72,6 +81,7 @@
         <div class="stat-item"><span class="stat-label">⏱️ 时间</span><span class="stat-value" id="timeDisplay">00:00:00</span></div>
     </div>
 
+    <!-- 主要升级：矿镐、熔炉 -->
     <div class="panel">
         <div class="upgrade-row">
             <div class="upgrade-info">
@@ -101,6 +111,7 @@
         </div>
     </div>
 
+    <!-- 重置 & 加速 & 清零 -->
     <div class="reset-area">
         <div class="inline-group">
             <button class="btn btn-reset" id="resetBtn">🔄 重置</button>
@@ -116,29 +127,83 @@
         </div>
     </div>
 
-    <!-- 重置升级：沙漏 -->
-    <div style="margin-top:1rem;padding:0.8rem 1.2rem;background:#fafafa;border-radius:10px;border:1px solid #eee;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;">
-        <div>
-            <span style="font-weight:600;">⏳ 时光沙漏</span>
-            <span style="margin-left:0.5rem;background:#eaeaea;padding:0.1rem 0.6rem;border-radius:20px;font-size:0.9rem;" id="hourglassLevel">0</span>
-            <span class="upgrade-effect" id="hourglassEffect">×1</span>
-            <span style="margin-left:0.5rem;font-size:0.9rem;color:#444;">全局 ×2/级</span>
+    <!-- 时光沙漏 (硬编码) -->
+    <div class="upgrade-row">
+        <div class="upgrade-info">
+            <span class="upgrade-name">⏳ 时光沙漏</span>
+            <span class="upgrade-level" id="hourglassLevelDisplay">0</span>
+            <span class="upgrade-effect" id="hourglassEffectDisplay">×1</span>
+            <span class="upgrade-desc">全局 ×2/级</span>
         </div>
         <div class="action-group">
-            <span class="upgrade-price" id="hourglassPrice">15</span>
+            <span class="upgrade-price" id="hourglassPriceDisplay">15</span>
             <button class="btn btn-primary" id="buyHourglass">购买</button>
             <button class="btn btn-buy-all" id="buyHourglassAll">一键</button>
         </div>
     </div>
 
-    <!-- 独立强化项（原天赋效果） -->
-    <div class="perk-area">
-        <h3 style="font-weight:500;margin:0 0 0.5rem 0;">💪 强化 (重置币购买)</h3>
-        <div class="perk-grid" id="perkContainer">
-            <!-- 由 JS 动态生成 -->
+    <!-- 四个强化项，完全与沙漏相同的结构，硬编码 -->
+    <!-- 矿镐专精 -->
+    <div class="upgrade-row">
+        <div class="upgrade-info">
+            <span class="upgrade-name">⛏️ 矿镐专精</span>
+            <span class="upgrade-level" id="perkPickaxeLevel">0</span>
+            <span class="upgrade-effect" id="perkPickaxeEffect">矿镐每级额外 +1/秒</span>
+            <span class="upgrade-desc" id="perkPickaxeDesc">当前 +0/秒</span>
+        </div>
+        <div class="action-group">
+            <span class="upgrade-price" id="perkPickaxePrice">5</span>
+            <button class="btn btn-primary" id="buyPerkPickaxe">购买</button>
+            <button class="btn btn-buy-all" id="buyPerkPickaxeAll">一键</button>
         </div>
     </div>
 
+    <!-- 熔炉专精 -->
+    <div class="upgrade-row">
+        <div class="upgrade-info">
+            <span class="upgrade-name">🔥 熔炉专精</span>
+            <span class="upgrade-level" id="perkFurnaceLevel">0</span>
+            <span class="upgrade-effect" id="perkFurnaceEffect">熔炉加成 +5%/级</span>
+            <span class="upgrade-desc" id="perkFurnaceDesc">当前 +0%</span>
+        </div>
+        <div class="action-group">
+            <span class="upgrade-price" id="perkFurnacePrice">6</span>
+            <button class="btn btn-primary" id="buyPerkFurnace">购买</button>
+            <button class="btn btn-buy-all" id="buyPerkFurnaceAll">一键</button>
+        </div>
+    </div>
+
+    <!-- 初始资金 -->
+    <div class="upgrade-row">
+        <div class="upgrade-info">
+            <span class="upgrade-name">💰 初始资金</span>
+            <span class="upgrade-level" id="perkGoldLevel">0</span>
+            <span class="upgrade-effect" id="perkGoldEffect">重置后初始 +100 金币/级</span>
+            <span class="upgrade-desc" id="perkGoldDesc">重置 +0 金币</span>
+        </div>
+        <div class="action-group">
+            <span class="upgrade-price" id="perkGoldPrice">4</span>
+            <button class="btn btn-primary" id="buyPerkGold">购买</button>
+            <button class="btn btn-buy-all" id="buyPerkGoldAll">一键</button>
+        </div>
+    </div>
+
+    <!-- 价格优惠 -->
+    <div class="upgrade-row">
+        <div class="upgrade-info">
+            <span class="upgrade-name">🏷️ 价格优惠</span>
+            <span class="upgrade-level" id="perkDiscountLevel">0</span>
+            <span class="upgrade-effect" id="perkDiscountEffect">所有购买价格 ×0.95/级 (可叠加)</span>
+            <span class="upgrade-desc" id="perkDiscountDesc">价格 ×1.000</span>
+        </div>
+        <div class="action-group">
+            <span class="upgrade-price" id="perkDiscountPrice">8</span>
+            <button class="btn btn-primary" id="buyPerkDiscount">购买</button>
+            <button class="btn btn-buy-all" id="buyPerkDiscountAll">一键</button>
+        </div>
+    </div>
+
+    <!-- 结局 -->
     <div class="end-area" id="endArea">
         <div><button class="btn btn-end" id="endBtn" disabled>🏆 达成结局 (需要当前金币 ≥ 50,000)</button></div>
         <div id="endMessage" style="font-weight:500;color:#2a7;"></div>
@@ -147,7 +212,7 @@
     <div class="footer">💾 游戏自动存档 (刷新页面保留) &nbsp;|&nbsp; 加速时时间统计同步加速</div>
 
     <script>
-        // ===================== 最终简化版：无天赋树，强化项独立 =====================
+        // ===================== 完全硬编码版本 =====================
 
         // ---------- 数值配置 ----------
         const BASE_RATE = 1;
@@ -167,41 +232,13 @@
         const RESET_COIN_DIVISOR = 1000;
         const END_CURRENT_COINS = 50000;
 
-        // ---------- 强化项配置（原天赋效果） ----------
-        const PERKS = [
-            {
-                id: 'pickaxeMastery',
-                name: '⛏️ 矿镐专精',
-                basePrice: 5,
-                priceMult: 1.8,
-                effect: '矿镐每级额外 +1/秒',
-                apply: (level) => ({ pickaxeBonus: level })
-            },
-            {
-                id: 'furnaceMastery',
-                name: '🔥 熔炉专精',
-                basePrice: 6,
-                priceMult: 2.0,
-                effect: '熔炉加成 +5%/级',
-                apply: (level) => ({ furnaceBonus: level * 0.05 })
-            },
-            {
-                id: 'startingGold',
-                name: '💰 初始资金',
-                basePrice: 4,
-                priceMult: 2.0,
-                effect: '重置后初始 +100 金币/级',
-                apply: (level) => ({ startingGold: level * 100 })
-            },
-            {
-                id: 'priceDiscount',
-                name: '🏷️ 价格优惠',
-                basePrice: 8,
-                priceMult: 2.5,
-                effect: '所有购买价格 ×0.95/级 (可叠加)',
-                apply: (level) => ({ discount: Math.pow(0.95, level) })
-            }
-        ];
+        // 强化项配置（用于价格计算和效果）
+        const PERK_CONFIG = {
+            pickaxe: { basePrice: 5, priceMult: 1.8, effect: (lvl) => ({ pickaxeBonus: lvl }) },
+            furnace: { basePrice: 6, priceMult: 2.0, effect: (lvl) => ({ furnaceBonus: lvl * 0.05 }) },
+            gold: { basePrice: 4, priceMult: 2.0, effect: (lvl) => ({ startingGold: lvl * 100 }) },
+            discount: { basePrice: 8, priceMult: 2.5, effect: (lvl) => ({ discount: Math.pow(0.95, lvl) }) }
+        };
 
         // ---------- 游戏状态 ----------
         let state = {
@@ -212,12 +249,10 @@
             hourglassLevel: 0,
             resetCoins: 0,
             // 强化等级
-            perks: {
-                pickaxeMastery: 0,
-                furnaceMastery: 0,
-                startingGold: 0,
-                priceDiscount: 0
-            },
+            perkPickaxe: 0,
+            perkFurnace: 0,
+            perkGold: 0,
+            perkDiscount: 0,
             accelerated: false,
             elapsedSeconds: 0,
             lastTimestamp: 0,
@@ -225,6 +260,7 @@
         let speedMultiplier = 1;
 
         // ---------- DOM 引用 ----------
+        // 统计
         const coinDisplay = document.getElementById('coinDisplay');
         const rateDisplay = document.getElementById('rateDisplay');
         const resetCoinDisplay = document.getElementById('resetCoinDisplay');
@@ -232,24 +268,56 @@
         const totalCoinDisplay = document.getElementById('totalCoinDisplay');
         const timeDisplay = document.getElementById('timeDisplay');
 
+        // 矿镐
         const pickaxeLevelEl = document.getElementById('pickaxeLevel');
         const pickaxeEffectEl = document.getElementById('pickaxeEffect');
         const pickaxePriceEl = document.getElementById('pickaxePrice');
         const buyPickaxeBtn = document.getElementById('buyPickaxe');
         const buyPickaxeAllBtn = document.getElementById('buyPickaxeAll');
 
+        // 熔炉
         const furnaceLevelEl = document.getElementById('furnaceLevel');
         const furnaceEffectEl = document.getElementById('furnaceEffect');
         const furnacePriceEl = document.getElementById('furnacePrice');
         const buyFurnaceBtn = document.getElementById('buyFurnace');
         const buyFurnaceAllBtn = document.getElementById('buyFurnaceAll');
 
-        const hourglassLevelEl = document.getElementById('hourglassLevel');
-        const hourglassEffectEl = document.getElementById('hourglassEffect');
-        const hourglassPriceEl = document.getElementById('hourglassPrice');
+        // 沙漏
+        const hourglassLevelEl = document.getElementById('hourglassLevelDisplay');
+        const hourglassEffectEl = document.getElementById('hourglassEffectDisplay');
+        const hourglassPriceEl = document.getElementById('hourglassPriceDisplay');
         const buyHourglassBtn = document.getElementById('buyHourglass');
         const buyHourglassAllBtn = document.getElementById('buyHourglassAll');
 
+        // 强化项 - 矿镐专精
+        const perkPickaxeLevelEl = document.getElementById('perkPickaxeLevel');
+        const perkPickaxeDescEl = document.getElementById('perkPickaxeDesc');
+        const perkPickaxePriceEl = document.getElementById('perkPickaxePrice');
+        const buyPerkPickaxeBtn = document.getElementById('buyPerkPickaxe');
+        const buyPerkPickaxeAllBtn = document.getElementById('buyPerkPickaxeAll');
+
+        // 强化项 - 熔炉专精
+        const perkFurnaceLevelEl = document.getElementById('perkFurnaceLevel');
+        const perkFurnaceDescEl = document.getElementById('perkFurnaceDesc');
+        const perkFurnacePriceEl = document.getElementById('perkFurnacePrice');
+        const buyPerkFurnaceBtn = document.getElementById('buyPerkFurnace');
+        const buyPerkFurnaceAllBtn = document.getElementById('buyPerkFurnaceAll');
+
+        // 强化项 - 初始资金
+        const perkGoldLevelEl = document.getElementById('perkGoldLevel');
+        const perkGoldDescEl = document.getElementById('perkGoldDesc');
+        const perkGoldPriceEl = document.getElementById('perkGoldPrice');
+        const buyPerkGoldBtn = document.getElementById('buyPerkGold');
+        const buyPerkGoldAllBtn = document.getElementById('buyPerkGoldAll');
+
+        // 强化项 - 价格优惠
+        const perkDiscountLevelEl = document.getElementById('perkDiscountLevel');
+        const perkDiscountDescEl = document.getElementById('perkDiscountDesc');
+        const perkDiscountPriceEl = document.getElementById('perkDiscountPrice');
+        const buyPerkDiscountBtn = document.getElementById('buyPerkDiscount');
+        const buyPerkDiscountAllBtn = document.getElementById('buyPerkDiscountAll');
+
+        // 其他
         const resetBtn = document.getElementById('resetBtn');
         const resetHint = document.getElementById('resetHint');
         const resetPreview = document.getElementById('resetPreview');
@@ -258,32 +326,32 @@
         const endMessage = document.getElementById('endMessage');
         const accelerateBtn = document.getElementById('accelerateBtn');
         const accelStatus = document.getElementById('accelStatus');
-        const perkContainer = document.getElementById('perkContainer');
 
         // ---------- 辅助函数 ----------
         function getPickaxePrice(level) { return Math.floor(PICKAXE_BASE_PRICE * Math.pow(PICKAXE_PRICE_MULT, level)); }
         function getFurnacePrice(level) { return Math.floor(FURNACE_BASE_PRICE * Math.pow(FURNACE_PRICE_MULT, level)); }
         function getHourglassPrice(level) { return Math.floor(HOURGLASS_BASE_PRICE * Math.pow(HOURGLASS_PRICE_MULT, level)); }
         function getPerkPrice(perkId, level) {
-            const p = PERKS.find(x => x.id === perkId);
-            return Math.floor(p.basePrice * Math.pow(p.priceMult, level));
+            const cfg = PERK_CONFIG[perkId];
+            return Math.floor(cfg.basePrice * Math.pow(cfg.priceMult, level));
         }
 
-        function getPerkBonuses() {
-            const bonuses = { pickaxeBonus: 0, furnaceBonus: 0, startingGold: 0, discount: 1.0 };
-            PERKS.forEach(p => {
-                const level = state.perks[p.id] || 0;
-                const applied = p.apply(level);
-                if (applied.pickaxeBonus) bonuses.pickaxeBonus += applied.pickaxeBonus;
-                if (applied.furnaceBonus) bonuses.furnaceBonus += applied.furnaceBonus;
-                if (applied.startingGold) bonuses.startingGold += applied.startingGold;
-                if (applied.discount) bonuses.discount *= applied.discount;
-            });
-            return bonuses;
+        // 计算所有加成
+        function computeBonuses() {
+            const pLvl = state.perkPickaxe;
+            const fLvl = state.perkFurnace;
+            const gLvl = state.perkGold;
+            const dLvl = state.perkDiscount;
+            return {
+                pickaxeBonus: pLvl,                          // 矿镐每级额外+1
+                furnaceBonus: fLvl * 0.05,                   // 熔炉加成 +5%/级
+                startingGold: gLvl * 100,                    // 初始资金 +100/级
+                discount: Math.pow(0.95, dLvl)               // 价格折扣
+            };
         }
 
         function computeRate() {
-            const bonuses = getPerkBonuses();
+            const bonuses = computeBonuses();
             const pickaxePerLevel = PICKAXE_ADD + bonuses.pickaxeBonus;
             let base = BASE_RATE + state.pickaxeLevel * pickaxePerLevel;
             const furnacePercent = FURNACE_ADD_PERCENT + bonuses.furnaceBonus;
@@ -293,9 +361,9 @@
         }
 
         function getDiscountedPrice(basePriceFn, level) {
-            const bonuses = getPerkBonuses();
+            const bonus = computeBonuses();
             const raw = basePriceFn(level);
-            return Math.floor(raw * bonuses.discount);
+            return Math.floor(raw * bonus.discount);
         }
 
         function buyMax(priceFn, levelGetter, levelSetter, coinField) {
@@ -321,7 +389,7 @@
         // ---------- UI 更新 ----------
         function updateUI() {
             const rate = computeRate();
-            const bonuses = getPerkBonuses();
+            const bonuses = computeBonuses();
 
             coinDisplay.textContent = Math.floor(state.coins);
             rateDisplay.textContent = rate.toFixed(2);
@@ -330,6 +398,7 @@
             totalCoinDisplay.textContent = Math.floor(state.totalCoinsEarned);
             timeDisplay.textContent = formatTime(state.elapsedSeconds);
 
+            // 矿镐
             const pLevel = state.pickaxeLevel;
             pickaxeLevelEl.textContent = pLevel;
             const pickaxePerLevel = PICKAXE_ADD + bonuses.pickaxeBonus;
@@ -339,6 +408,7 @@
             buyPickaxeBtn.disabled = state.coins < pPrice;
             buyPickaxeAllBtn.disabled = state.coins < pPrice;
 
+            // 熔炉
             const fLevel = state.furnaceLevel;
             furnaceLevelEl.textContent = fLevel;
             const furnacePercent = FURNACE_ADD_PERCENT + bonuses.furnaceBonus;
@@ -349,6 +419,7 @@
             buyFurnaceBtn.disabled = state.coins < fPrice;
             buyFurnaceAllBtn.disabled = state.coins < fPrice;
 
+            // 沙漏
             const hLevel = state.hourglassLevel;
             hourglassLevelEl.textContent = hLevel;
             hourglassEffectEl.textContent = `×${Math.pow(HOURGLASS_MULT, hLevel)}`;
@@ -357,7 +428,43 @@
             buyHourglassBtn.disabled = state.resetCoins < hPrice;
             buyHourglassAllBtn.disabled = state.resetCoins < hPrice;
 
-            // 重置条件与预览
+            // 强化 - 矿镐专精
+            const ppLvl = state.perkPickaxe;
+            perkPickaxeLevelEl.textContent = ppLvl;
+            perkPickaxeDescEl.textContent = `当前 +${ppLvl}/秒`;
+            const ppPrice = getDiscountedPrice((lvl) => getPerkPrice('pickaxe', lvl), ppLvl);
+            perkPickaxePriceEl.textContent = ppPrice;
+            buyPerkPickaxeBtn.disabled = state.resetCoins < ppPrice;
+            buyPerkPickaxeAllBtn.disabled = state.resetCoins < ppPrice;
+
+            // 强化 - 熔炉专精
+            const pfLvl = state.perkFurnace;
+            perkFurnaceLevelEl.textContent = pfLvl;
+            perkFurnaceDescEl.textContent = `当前 +${(pfLvl * 0.05 * 100).toFixed(0)}%`;
+            const pfPrice = getDiscountedPrice((lvl) => getPerkPrice('furnace', lvl), pfLvl);
+            perkFurnacePriceEl.textContent = pfPrice;
+            buyPerkFurnaceBtn.disabled = state.resetCoins < pfPrice;
+            buyPerkFurnaceAllBtn.disabled = state.resetCoins < pfPrice;
+
+            // 强化 - 初始资金
+            const pgLvl = state.perkGold;
+            perkGoldLevelEl.textContent = pgLvl;
+            perkGoldDescEl.textContent = `重置 +${pgLvl * 100} 金币`;
+            const pgPrice = getDiscountedPrice((lvl) => getPerkPrice('gold', lvl), pgLvl);
+            perkGoldPriceEl.textContent = pgPrice;
+            buyPerkGoldBtn.disabled = state.resetCoins < pgPrice;
+            buyPerkGoldAllBtn.disabled = state.resetCoins < pgPrice;
+
+            // 强化 - 价格优惠
+            const pdLvl = state.perkDiscount;
+            perkDiscountLevelEl.textContent = pdLvl;
+            perkDiscountDescEl.textContent = `价格 ×${Math.pow(0.95, pdLvl).toFixed(3)}`;
+            const pdPrice = getDiscountedPrice((lvl) => getPerkPrice('discount', lvl), pdLvl);
+            perkDiscountPriceEl.textContent = pdPrice;
+            buyPerkDiscountBtn.disabled = state.resetCoins < pdPrice;
+            buyPerkDiscountAllBtn.disabled = state.resetCoins < pdPrice;
+
+            // 重置
             const canReset = state.coins >= RESET_THRESHOLD;
             resetBtn.disabled = !canReset;
             resetHint.textContent = canReset ?
@@ -366,63 +473,13 @@
             const previewCoins = Math.floor(state.coins / RESET_COIN_DIVISOR);
             resetPreview.textContent = `重置可获得 ${previewCoins} 重置币`;
 
+            // 结局
             const endAvailable = state.coins >= END_CURRENT_COINS;
             endBtn.disabled = !endAvailable;
             endMessage.textContent = endAvailable ? '✨ 已解锁！点击获得胜利！' : `还需 ${END_CURRENT_COINS - state.coins} 当前金币`;
 
             accelStatus.textContent = state.accelerated ? '开 (×10)' : '关';
             accelerateBtn.classList.toggle('active', state.accelerated);
-
-            renderPerks();
-        }
-
-        // ---------- 强化项渲染 ----------
-        function renderPerks() {
-            perkContainer.innerHTML = '';
-            PERKS.forEach(p => {
-                const level = state.perks[p.id] || 0;
-                const price = getDiscountedPrice((lvl) => getPerkPrice(p.id, lvl), level);
-                const canBuy = state.resetCoins >= price;
-
-                const card = document.createElement('div');
-                card.className = 'perk-card';
-
-                const header = document.createElement('div');
-                header.className = 'perk-header';
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'perk-name';
-                nameSpan.textContent = p.name;
-                const levelSpan = document.createElement('span');
-                levelSpan.className = 'upgrade-level';
-                levelSpan.textContent = `Lv.${level}`;
-                header.appendChild(nameSpan);
-                header.appendChild(levelSpan);
-
-                const effectDiv = document.createElement('div');
-                effectDiv.className = 'perk-effect';
-                effectDiv.textContent = p.effect;
-
-                const bottomDiv = document.createElement('div');
-                bottomDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:0.2rem;';
-                const priceSpan = document.createElement('span');
-                priceSpan.className = 'perk-price';
-                priceSpan.textContent = `💰 ${price}`;
-                const buyBtn = document.createElement('button');
-                buyBtn.className = 'btn btn-primary';
-                buyBtn.textContent = '购买';
-                buyBtn.disabled = !canBuy;
-                // 直接绑定事件
-                buyBtn.addEventListener('click', function() {
-                    buyPerk(p.id);
-                });
-                bottomDiv.appendChild(priceSpan);
-                bottomDiv.appendChild(buyBtn);
-
-                card.appendChild(header);
-                card.appendChild(effectDiv);
-                card.appendChild(bottomDiv);
-                perkContainer.appendChild(card);
-            });
         }
 
         // ---------- 购买函数 ----------
@@ -434,7 +491,6 @@
             saveGame();
             updateUI();
         }
-
         function buyFurnace() {
             const price = getDiscountedPrice(getFurnacePrice, state.furnaceLevel);
             if (state.coins < price) return;
@@ -443,7 +499,6 @@
             saveGame();
             updateUI();
         }
-
         function buyHourglass() {
             const price = getDiscountedPrice(getHourglassPrice, state.hourglassLevel);
             if (state.resetCoins < price) return;
@@ -453,15 +508,40 @@
             updateUI();
         }
 
-        function buyPerk(perkId) {
-            const level = state.perks[perkId] || 0;
-            const price = getDiscountedPrice((lvl) => getPerkPrice(perkId, lvl), level);
-            if (state.resetCoins < price) {
-                alert('重置币不足，无法购买。');
-                return;
-            }
+        // 强化购买
+        function buyPerkPickaxe() {
+            const level = state.perkPickaxe;
+            const price = getDiscountedPrice((lvl) => getPerkPrice('pickaxe', lvl), level);
+            if (state.resetCoins < price) { alert('重置币不足'); return; }
             state.resetCoins -= price;
-            state.perks[perkId] = (state.perks[perkId] || 0) + 1;
+            state.perkPickaxe++;
+            saveGame();
+            updateUI();
+        }
+        function buyPerkFurnace() {
+            const level = state.perkFurnace;
+            const price = getDiscountedPrice((lvl) => getPerkPrice('furnace', lvl), level);
+            if (state.resetCoins < price) { alert('重置币不足'); return; }
+            state.resetCoins -= price;
+            state.perkFurnace++;
+            saveGame();
+            updateUI();
+        }
+        function buyPerkGold() {
+            const level = state.perkGold;
+            const price = getDiscountedPrice((lvl) => getPerkPrice('gold', lvl), level);
+            if (state.resetCoins < price) { alert('重置币不足'); return; }
+            state.resetCoins -= price;
+            state.perkGold++;
+            saveGame();
+            updateUI();
+        }
+        function buyPerkDiscount() {
+            const level = state.perkDiscount;
+            const price = getDiscountedPrice((lvl) => getPerkPrice('discount', lvl), level);
+            if (state.resetCoins < price) { alert('重置币不足'); return; }
+            state.resetCoins -= price;
+            state.perkDiscount++;
             saveGame();
             updateUI();
         }
@@ -470,6 +550,19 @@
         function buyMaxPickaxe() { buyMax(getPickaxePrice, () => state.pickaxeLevel, (v) => state.pickaxeLevel = v, 'coins'); }
         function buyMaxFurnace() { buyMax(getFurnacePrice, () => state.furnaceLevel, (v) => state.furnaceLevel = v, 'coins'); }
         function buyMaxHourglass() { buyMax(getHourglassPrice, () => state.hourglassLevel, (v) => state.hourglassLevel = v, 'resetCoins'); }
+
+        function buyMaxPerkPickaxe() {
+            buyMax((lvl) => getPerkPrice('pickaxe', lvl), () => state.perkPickaxe, (v) => state.perkPickaxe = v, 'resetCoins');
+        }
+        function buyMaxPerkFurnace() {
+            buyMax((lvl) => getPerkPrice('furnace', lvl), () => state.perkFurnace, (v) => state.perkFurnace = v, 'resetCoins');
+        }
+        function buyMaxPerkGold() {
+            buyMax((lvl) => getPerkPrice('gold', lvl), () => state.perkGold, (v) => state.perkGold = v, 'resetCoins');
+        }
+        function buyMaxPerkDiscount() {
+            buyMax((lvl) => getPerkPrice('discount', lvl), () => state.perkDiscount, (v) => state.perkDiscount = v, 'resetCoins');
+        }
 
         // ---------- 重置 & 清零 & 结局 ----------
         function performReset() {
@@ -487,7 +580,7 @@
             state.pickaxeLevel = 0;
             state.furnaceLevel = 0;
             // 初始资金加成
-            const bonuses = getPerkBonuses();
+            const bonuses = computeBonuses();
             state.coins += bonuses.startingGold;
             saveGame();
             updateUI();
@@ -501,7 +594,10 @@
             state.furnaceLevel = 0;
             state.hourglassLevel = 0;
             state.resetCoins = 0;
-            state.perks = { pickaxeMastery: 0, furnaceMastery: 0, startingGold: 0, priceDiscount: 0 };
+            state.perkPickaxe = 0;
+            state.perkFurnace = 0;
+            state.perkGold = 0;
+            state.perkDiscount = 0;
             state.accelerated = false;
             speedMultiplier = 1;
             state.elapsedSeconds = 0;
@@ -535,7 +631,10 @@
                     furnaceLevel: state.furnaceLevel,
                     hourglassLevel: state.hourglassLevel,
                     resetCoins: state.resetCoins,
-                    perks: state.perks,
+                    perkPickaxe: state.perkPickaxe,
+                    perkFurnace: state.perkFurnace,
+                    perkGold: state.perkGold,
+                    perkDiscount: state.perkDiscount,
                     accelerated: state.accelerated,
                     elapsedSeconds: state.elapsedSeconds,
                 };
@@ -554,7 +653,10 @@
                 state.furnaceLevel = data.furnaceLevel || 0;
                 state.hourglassLevel = data.hourglassLevel || 0;
                 state.resetCoins = data.resetCoins || 0;
-                state.perks = data.perks || { pickaxeMastery: 0, furnaceMastery: 0, startingGold: 0, priceDiscount: 0 };
+                state.perkPickaxe = data.perkPickaxe || 0;
+                state.perkFurnace = data.perkFurnace || 0;
+                state.perkGold = data.perkGold || 0;
+                state.perkDiscount = data.perkDiscount || 0;
                 state.accelerated = data.accelerated || false;
                 speedMultiplier = state.accelerated ? 10 : 1;
                 state.elapsedSeconds = data.elapsedSeconds || 0;
@@ -602,6 +704,17 @@
             buyFurnaceAllBtn.addEventListener('click', buyMaxFurnace);
             buyHourglassBtn.addEventListener('click', buyHourglass);
             buyHourglassAllBtn.addEventListener('click', buyMaxHourglass);
+
+            // 强化按钮
+            buyPerkPickaxeBtn.addEventListener('click', buyPerkPickaxe);
+            buyPerkPickaxeAllBtn.addEventListener('click', buyMaxPerkPickaxe);
+            buyPerkFurnaceBtn.addEventListener('click', buyPerkFurnace);
+            buyPerkFurnaceAllBtn.addEventListener('click', buyMaxPerkFurnace);
+            buyPerkGoldBtn.addEventListener('click', buyPerkGold);
+            buyPerkGoldAllBtn.addEventListener('click', buyMaxPerkGold);
+            buyPerkDiscountBtn.addEventListener('click', buyPerkDiscount);
+            buyPerkDiscountAllBtn.addEventListener('click', buyMaxPerkDiscount);
+
             resetBtn.addEventListener('click', performReset);
             hardResetBtn.addEventListener('click', hardReset);
             endBtn.addEventListener('click', endGame);
