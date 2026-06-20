@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>挂机增量 · 矿镐与熔炉</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: white; color: #1e1e1e; max-width: 780px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+        h1 { font-weight: 500; font-size: 2rem; margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; }
+        .stats { display: flex; flex-wrap: wrap; gap: 1rem 2rem; background: #f8f8f8; padding: 1rem 1.5rem; border-radius: 12px; margin: 1rem 0 1.5rem; }
+        .stat-item { display: flex; align-items: baseline; gap: 0.3rem; }
+        .stat-label { font-weight: 400; color: #555; }
+        .stat-value { font-weight: 600; font-size: 1.2rem; }
+        .stat-value.coin { color: #b8860b; }
+        .panel { display: flex; flex-direction: column; gap: 0.7rem; margin: 1.5rem 0; }
+        .upgrade-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; background: #fafafa; padding: 0.7rem 1.2rem; border-radius: 10px; border: 1px solid #eee; gap: 0.5rem; }
+        .upgrade-info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 1rem; flex: 1 1 auto; }
+        .upgrade-name { font-weight: 600; font-size: 1.05rem; }
+        .upgrade-level { background: #eaeaea; padding: 0.1rem 0.6rem; border-radius: 20px; font-size: 0.9rem; }
+        .upgrade-effect { font-size: 0.9rem; color: #2a6; font-weight: 500; }
+        .upgrade-desc { color: #444; font-size: 0.9rem; }
+        .upgrade-price { font-weight: 500; }
+        .btn { background: white; border: 1px solid #aaa; border-radius: 30px; padding: 0.35rem 1.1rem; font-size: 0.95rem; cursor: pointer; transition: 0.15s; font-weight: 500; white-space: nowrap; }
+        .btn:hover:not(:disabled) { background: #f0f0f0; border-color: #888; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-primary { background: #1e1e1e; border-color: #1e1e1e; color: white; }
+        .btn-primary:hover:not(:disabled) { background: #333; border-color: #333; }
+        .btn-reset { background: #fff0f0; border-color: #dbb; }
+        .btn-reset:hover:not(:disabled) { background: #ffe0e0; }
+        .btn-danger { background: #fff0f0; border-color: #d55; color: #a33; }
+        .btn-danger:hover:not(:disabled) { background: #fdd; border-color: #c44; }
+        .btn-end { background: #f0f8ff; border-color: #8ab; }
+        .btn-end:hover:not(:disabled) { background: #e0f0ff; }
+        .btn-accelerate { background: #f0fff0; border-color: #8b8; }
+        .btn-accelerate.active { background: #d0f0d0; border-color: #4a4; }
+        .btn-buy-all { background: #e8f0fe; border-color: #aac; font-size: 0.85rem; padding: 0.25rem 0.8rem; }
+        .btn-buy-all:hover:not(:disabled) { background: #d0e0ff; }
+        .reset-area { margin-top: 1.8rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
+        .perk-area { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ddd; }
+        .perk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.7rem; margin-top: 0.8rem; }
+        .perk-card { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 0.7rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+        .perk-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .perk-name { font-weight: 600; }
+        .perk-effect { font-size: 0.9rem; color: #2a6; }
+        .perk-price { font-weight: 500; }
+        .end-area { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
+        .footer { margin-top: 2rem; font-size: 0.85rem; color: #888; }
+        .threshold-hint { font-size: 0.9rem; color: #666; }
+        .inline-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.2rem; }
+        .action-group { display: flex; gap: 0.4rem; align-items: center; }
+        .preview-text { font-size: 0.9rem; color: #2a6; font-weight: 500; }
+        @media (max-width: 480px) {
+            .stats { gap: 0.8rem; }
+            .upgrade-row { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .upgrade-info { justify-content: space-between; }
+            .perk-grid { grid-template-columns: 1fr; }
+            .reset-area { flex-direction: column; align-items: stretch; }
+            .action-group { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <h1>⛏️ 矿镐 · 熔炉</h1>
+
+    <div class="stats" id="statsContainer">
+        <div class="stat-item"><span class="stat-label">🪙 金币</span><span class="stat-value coin" id="coinDisplay">0</span></div>
+        <div class="stat-item"><span class="stat-label">⚡ 每秒</span><span class="stat-value" id="rateDisplay">1.00</span></div>
+        <div class="stat-item"><span class="stat-label">🔁 重置币</span><span class="stat-value" id="resetCoinDisplay">0</span></div>
+        <div class="stat-item"><span class="stat-label">⏳ 沙漏</span><span class="stat-value" id="hourglassDisplay">0</span></div>
+        <div class="stat-item"><span class="stat-label">📈 总金币</span><span class="stat-value" id="totalCoinDisplay">0</span></div>
+        <div class="stat-item"><span class="stat-label">⏱️ 时间</span><span class="stat-value" id="timeDisplay">00:00:00</span></div>
+    </div>
+
+    <div class="panel">
+        <div class="upgrade-row">
+            <div class="upgrade-info">
+                <span class="upgrade-name">⛏️ 矿镐</span>
+                <span class="upgrade-level" id="pickaxeLevel">0</span>
+                <span class="upgrade-effect" id="pickaxeEffect">+0/秒</span>
+                <span class="upgrade-desc">每级+2</span>
+            </div>
+            <div class="action-group">
+                <span class="upgrade-price" id="pickaxePrice">30</span>
+                <button class="btn btn-primary" id="buyPickaxe">购买</button>
+                <button class="btn btn-buy-all" id="buyPickaxeAll">一键</button>
+            </div>
+        </div>
+        <div class="upgrade-row">
+            <div class="upgrade-info">
+                <span class="upgrade-name">🔥 熔炉</span>
+                <span class="upgrade-level" id="furnaceLevel">0</span>
+                <span class="upgrade-effect" id="furnaceEffect">+0%</span>
+                <span class="upgrade-desc">每级+20%</span>
+            </div>
+            <div class="action-group">
+                <span class="upgrade-price" id="furnacePrice">50</span>
+                <button class="btn btn-primary" id="buyFurnace">购买</button>
+                <button class="btn btn-buy-all" id="buyFurnaceAll">一键</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="reset-area">
+        <div class="inline-group">
+            <button class="btn btn-reset" id="resetBtn">🔄 重置</button>
+            <span class="threshold-hint" id="resetHint">需要 5000 金币</span>
+            <span class="preview-text" id="resetPreview">重置可获得 0 重置币</span>
+        </div>
+        <div class="inline-group">
+            <button class="btn btn-danger" id="hardResetBtn">🗑️ 清零（彻底重置）</button>
+        </div>
+        <div class="inline-group">
+            <button class="btn btn-accelerate" id="accelerateBtn">⚡ 加速 ×10</button>
+            <span style="font-size:0.9rem;color:#555;" id="accelStatus">关闭</span>
+        </div>
+    </div>
+
+    <!-- 重置升级：沙漏 -->
+    <div style="margin-top:1rem;padding:0.8rem 1.2rem;background:#fafafa;border-radius:10px;border:1px solid #eee;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+        <div>
+            <span style="font-weight:600;">⏳ 时光沙漏</span>
+            <span style="margin-left:0.5rem;background:#eaeaea;padding:0.1rem 0.6rem;border-radius:20px;font-size:0.9rem;" id="hourglassLevel">0</span>
+            <span class="upgrade-effect" id="hourglassEffect">×1</span>
+            <span style="margin-left:0.5rem;font-size:0.9rem;color:#444;">全局 ×2/级</span>
+        </div>
+        <div class="action-group">
+            <span class="upgrade-price" id="hourglassPrice">15</span>
+            <button class="btn btn-primary" id="buyHourglass">购买</button>
+            <button class="btn btn-buy-all" id="buyHourglassAll">一键</button>
+        </div>
+    </div>
+
+    <!-- 独立强化项（原天赋效果） -->
+    <div class="perk-area">
+        <h3 style="font-weight:500;margin:0 0 0.5rem 0;">💪 强化 (重置币购买)</h3>
+        <div class="perk-grid" id="perkContainer">
+            <!-- 由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <div class="end-area" id="endArea">
+        <div><button class="btn btn-end" id="endBtn" disabled>🏆 达成结局 (需要当前金币 ≥ 50,000)</button></div>
+        <div id="endMessage" style="font-weight:500;color:#2a7;"></div>
+    </div>
+
+    <div class="footer">💾 游戏自动存档 (刷新页面保留) &nbsp;|&nbsp; 加速时时间统计同步加速</div>
+
+    <script>
+        // ===================== 最终简化版：无天赋树，强化项独立 =====================
+
+        // ---------- 数值配置 ----------
+        const BASE_RATE = 1;
+        const PICKAXE_BASE_PRICE = 30;
+        const PICKAXE_PRICE_MULT = 1.30;
+        const PICKAXE_ADD = 2;
+
+        const FURNACE_BASE_PRICE = 50;
+        const FURNACE_PRICE_MULT = 1.35;
+        const FURNACE_ADD_PERCENT = 0.20;
+
+        const HOURGLASS_BASE_PRICE = 15;
+        const HOURGLASS_PRICE_MULT = 2.8;
+        const HOURGLASS_MULT = 2;
+
+        const RESET_THRESHOLD = 5000;
+        const RESET_COIN_DIVISOR = 1000;
+        const END_CURRENT_COINS = 50000;
+
+        // ---------- 强化项配置（原天赋效果） ----------
+        const PERKS = [
+            {
+                id: 'pickaxeMastery',
+                name: '⛏️ 矿镐专精',
+                basePrice: 5,
+                priceMult: 1.8,
+                effect: '矿镐每级额外 +1/秒',
+                apply: (level) => ({ pickaxeBonus: level })
+            },
+            {
+                id: 'furnaceMastery',
+                name: '🔥 熔炉专精',
+                basePrice: 6,
+                priceMult: 2.0,
+                effect: '熔炉加成 +5%/级',
+                apply: (level) => ({ furnaceBonus: level * 0.05 })
+            },
+            {
+                id: 'startingGold',
+                name: '💰 初始资金',
+                basePrice: 4,
+                priceMult: 2.0,
+                effect: '重置后初始 +100 金币/级',
+                apply: (level) => ({ startingGold: level * 100 })
+            },
+            {
+                id: 'priceDiscount',
+                name: '🏷️ 价格优惠',
+                basePrice: 8,
+                priceMult: 2.5,
+                effect: '所有购买价格 ×0.95/级 (可叠加)',
+                apply: (level) => ({ discount: Math.pow(0.95, level) })
+            }
+        ];
+
+        // ---------- 游戏状态 ----------
+        let state = {
+            coins: 0,
+            totalCoinsEarned: 0,
+            pickaxeLevel: 0,
+            furnaceLevel: 0,
+            hourglassLevel: 0,
+            resetCoins: 0,
+            // 强化等级
+            perks: {
+                pickaxeMastery: 0,
+                furnaceMastery: 0,
+                startingGold: 0,
+                priceDiscount: 0
+            },
+            accelerated: false,
+            elapsedSeconds: 0,
+            lastTimestamp: 0,
+        };
+        let speedMultiplier = 1;
+
+        // ---------- DOM 引用 ----------
+        const coinDisplay = document.getElementById('coinDisplay');
+        const rateDisplay = document.getElementById('rateDisplay');
+        const resetCoinDisplay = document.getElementById('resetCoinDisplay');
+        const hourglassDisplay = document.getElementById('hourglassDisplay');
+        const totalCoinDisplay = document.getElementById('totalCoinDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        const pickaxeLevelEl = document.getElementById('pickaxeLevel');
+        const pickaxeEffectEl = document.getElementById('pickaxeEffect');
+        const pickaxePriceEl = document.getElementById('pickaxePrice');
+        const buyPickaxeBtn = document.getElementById('buyPickaxe');
+        const buyPickaxeAllBtn = document.getElementById('buyPickaxeAll');
+
+        const furnaceLevelEl = document.getElementById('furnaceLevel');
+        const furnaceEffectEl = document.getElementById('furnaceEffect');
+        const furnacePriceEl = document.getElementById('furnacePrice');
+        const buyFurnaceBtn = document.getElementById('buyFurnace');
+        const buyFurnaceAllBtn = document.getElementById('buyFurnaceAll');
+
+        const hourglassLevelEl = document.getElementById('hourglassLevel');
+        const hourglassEffectEl = document.getElementById('hourglassEffect');
+        const hourglassPriceEl = document.getElementById('hourglassPrice');
+        const buyHourglassBtn = document.getElementById('buyHourglass');
+        const buyHourglassAllBtn = document.getElementById('buyHourglassAll');
+
+        const resetBtn = document.getElementById('resetBtn');
+        const resetHint = document.getElementById('resetHint');
+        const resetPreview = document.getElementById('resetPreview');
+        const hardResetBtn = document.getElementById('hardResetBtn');
+        const endBtn = document.getElementById('endBtn');
+        const endMessage = document.getElementById('endMessage');
+        const accelerateBtn = document.getElementById('accelerateBtn');
+        const accelStatus = document.getElementById('accelStatus');
+        const perkContainer = document.getElementById('perkContainer');
+
+        // ---------- 辅助函数 ----------
+        function getPickaxePrice(level) { return Math.floor(PICKAXE_BASE_PRICE * Math.pow(PICKAXE_PRICE_MULT, level)); }
+        function getFurnacePrice(level) { return Math.floor(FURNACE_BASE_PRICE * Math.pow(FURNACE_PRICE_MULT, level)); }
+        function getHourglassPrice(level) { return Math.floor(HOURGLASS_BASE_PRICE * Math.pow(HOURGLASS_PRICE_MULT, level)); }
+        function getPerkPrice(perkId, level) {
+            const p = PERKS.find(x => x.id === perkId);
+            return Math.floor(p.basePrice * Math.pow(p.priceMult, level));
+        }
+
+        function getPerkBonuses() {
+            const bonuses = { pickaxeBonus: 0, furnaceBonus: 0, startingGold: 0, discount: 1.0 };
+            PERKS.forEach(p => {
+                const level = state.perks[p.id] || 0;
+                const applied = p.apply(level);
+                if (applied.pickaxeBonus) bonuses.pickaxeBonus += applied.pickaxeBonus;
+                if (applied.furnaceBonus) bonuses.furnaceBonus += applied.furnaceBonus;
+                if (applied.startingGold) bonuses.startingGold += applied.startingGold;
+                if (applied.discount) bonuses.discount *= applied.discount;
+            });
+            return bonuses;
+        }
+
+        function computeRate() {
+            const bonuses = getPerkBonuses();
+            const pickaxePerLevel = PICKAXE_ADD + bonuses.pickaxeBonus;
+            let base = BASE_RATE + state.pickaxeLevel * pickaxePerLevel;
+            const furnacePercent = FURNACE_ADD_PERCENT + bonuses.furnaceBonus;
+            let mult = 1 + state.furnaceLevel * furnacePercent;
+            let hourglassMult = Math.pow(HOURGLASS_MULT, state.hourglassLevel);
+            return base * mult * hourglassMult;
+        }
+
+        function getDiscountedPrice(basePriceFn, level) {
+            const bonuses = getPerkBonuses();
+            const raw = basePriceFn(level);
+            return Math.floor(raw * bonuses.discount);
+        }
+
+        function buyMax(priceFn, levelGetter, levelSetter, coinField) {
+            let count = 0;
+            while (true) {
+                const level = levelGetter();
+                const price = getDiscountedPrice(priceFn, level);
+                if (state[coinField] < price) break;
+                state[coinField] -= price;
+                levelSetter(level + 1);
+                count++;
+            }
+            if (count > 0) { saveGame(); updateUI(); }
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        // ---------- UI 更新 ----------
+        function updateUI() {
+            const rate = computeRate();
+            const bonuses = getPerkBonuses();
+
+            coinDisplay.textContent = Math.floor(state.coins);
+            rateDisplay.textContent = rate.toFixed(2);
+            resetCoinDisplay.textContent = state.resetCoins;
+            hourglassDisplay.textContent = state.hourglassLevel;
+            totalCoinDisplay.textContent = Math.floor(state.totalCoinsEarned);
+            timeDisplay.textContent = formatTime(state.elapsedSeconds);
+
+            const pLevel = state.pickaxeLevel;
+            pickaxeLevelEl.textContent = pLevel;
+            const pickaxePerLevel = PICKAXE_ADD + bonuses.pickaxeBonus;
+            pickaxeEffectEl.textContent = `+${pLevel * pickaxePerLevel}/秒`;
+            const pPrice = getDiscountedPrice(getPickaxePrice, pLevel);
+            pickaxePriceEl.textContent = pPrice;
+            buyPickaxeBtn.disabled = state.coins < pPrice;
+            buyPickaxeAllBtn.disabled = state.coins < pPrice;
+
+            const fLevel = state.furnaceLevel;
+            furnaceLevelEl.textContent = fLevel;
+            const furnacePercent = FURNACE_ADD_PERCENT + bonuses.furnaceBonus;
+            const totalPercent = fLevel * furnacePercent;
+            furnaceEffectEl.textContent = `+${(totalPercent * 100).toFixed(0)}%`;
+            const fPrice = getDiscountedPrice(getFurnacePrice, fLevel);
+            furnacePriceEl.textContent = fPrice;
+            buyFurnaceBtn.disabled = state.coins < fPrice;
+            buyFurnaceAllBtn.disabled = state.coins < fPrice;
+
+            const hLevel = state.hourglassLevel;
+            hourglassLevelEl.textContent = hLevel;
+            hourglassEffectEl.textContent = `×${Math.pow(HOURGLASS_MULT, hLevel)}`;
+            const hPrice = getDiscountedPrice(getHourglassPrice, hLevel);
+            hourglassPriceEl.textContent = hPrice;
+            buyHourglassBtn.disabled = state.resetCoins < hPrice;
+            buyHourglassAllBtn.disabled = state.resetCoins < hPrice;
+
+            // 重置条件与预览
+            const canReset = state.coins >= RESET_THRESHOLD;
+            resetBtn.disabled = !canReset;
+            resetHint.textContent = canReset ?
+                `✅ 可重置 (获得 ${Math.floor(state.coins / RESET_COIN_DIVISOR)} 重置币)` :
+                `❌ 需要 ${RESET_THRESHOLD} 金币 (当前 ${Math.floor(state.coins)})`;
+            const previewCoins = Math.floor(state.coins / RESET_COIN_DIVISOR);
+            resetPreview.textContent = `重置可获得 ${previewCoins} 重置币`;
+
+            const endAvailable = state.coins >= END_CURRENT_COINS;
+            endBtn.disabled = !endAvailable;
+            endMessage.textContent = endAvailable ? '✨ 已解锁！点击获得胜利！' : `还需 ${END_CURRENT_COINS - state.coins} 当前金币`;
+
+            accelStatus.textContent = state.accelerated ? '开 (×10)' : '关';
+            accelerateBtn.classList.toggle('active', state.accelerated);
+
+            renderPerks();
+        }
+
+        // ---------- 强化项渲染 ----------
+        function renderPerks() {
+            perkContainer.innerHTML = '';
+            PERKS.forEach(p => {
+                const level = state.perks[p.id] || 0;
+                const price = getDiscountedPrice((lvl) => getPerkPrice(p.id, lvl), level);
+                const canBuy = state.resetCoins >= price;
+
+                const card = document.createElement('div');
+                card.className = 'perk-card';
+
+                const header = document.createElement('div');
+                header.className = 'perk-header';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'perk-name';
+                nameSpan.textContent = p.name;
+                const levelSpan = document.createElement('span');
+                levelSpan.className = 'upgrade-level';
+                levelSpan.textContent = `Lv.${level}`;
+                header.appendChild(nameSpan);
+                header.appendChild(levelSpan);
+
+                const effectDiv = document.createElement('div');
+                effectDiv.className = 'perk-effect';
+                effectDiv.textContent = p.effect;
+
+                const bottomDiv = document.createElement('div');
+                bottomDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:0.2rem;';
+                const priceSpan = document.createElement('span');
+                priceSpan.className = 'perk-price';
+                priceSpan.textContent = `💰 ${price}`;
+                const buyBtn = document.createElement('button');
+                buyBtn.className = 'btn btn-primary';
+                buyBtn.textContent = '购买';
+                buyBtn.disabled = !canBuy;
+                // 直接绑定事件
+                buyBtn.addEventListener('click', function() {
+                    buyPerk(p.id);
+                });
+                bottomDiv.appendChild(priceSpan);
+                bottomDiv.appendChild(buyBtn);
+
+                card.appendChild(header);
+                card.appendChild(effectDiv);
+                card.appendChild(bottomDiv);
+                perkContainer.appendChild(card);
+            });
+        }
+
+        // ---------- 购买函数 ----------
+        function buyPickaxe() {
+            const price = getDiscountedPrice(getPickaxePrice, state.pickaxeLevel);
+            if (state.coins < price) return;
+            state.coins -= price;
+            state.pickaxeLevel++;
+            saveGame();
+            updateUI();
+        }
+
+        function buyFurnace() {
+            const price = getDiscountedPrice(getFurnacePrice, state.furnaceLevel);
+            if (state.coins < price) return;
+            state.coins -= price;
+            state.furnaceLevel++;
+            saveGame();
+            updateUI();
+        }
+
+        function buyHourglass() {
+            const price = getDiscountedPrice(getHourglassPrice, state.hourglassLevel);
+            if (state.resetCoins < price) return;
+            state.resetCoins -= price;
+            state.hourglassLevel++;
+            saveGame();
+            updateUI();
+        }
+
+        function buyPerk(perkId) {
+            const level = state.perks[perkId] || 0;
+            const price = getDiscountedPrice((lvl) => getPerkPrice(perkId, lvl), level);
+            if (state.resetCoins < price) {
+                alert('重置币不足，无法购买。');
+                return;
+            }
+            state.resetCoins -= price;
+            state.perks[perkId] = (state.perks[perkId] || 0) + 1;
+            saveGame();
+            updateUI();
+        }
+
+        // 一键购买
+        function buyMaxPickaxe() { buyMax(getPickaxePrice, () => state.pickaxeLevel, (v) => state.pickaxeLevel = v, 'coins'); }
+        function buyMaxFurnace() { buyMax(getFurnacePrice, () => state.furnaceLevel, (v) => state.furnaceLevel = v, 'coins'); }
+        function buyMaxHourglass() { buyMax(getHourglassPrice, () => state.hourglassLevel, (v) => state.hourglassLevel = v, 'resetCoins'); }
+
+        // ---------- 重置 & 清零 & 结局 ----------
+        function performReset() {
+            if (state.coins < RESET_THRESHOLD) {
+                alert(`需要至少 ${RESET_THRESHOLD} 金币才能重置。`);
+                return;
+            }
+            const earnedResetCoins = Math.floor(state.coins / RESET_COIN_DIVISOR);
+            if (earnedResetCoins === 0) {
+                alert('当前金币不足 1000，不会获得重置币，取消重置。');
+                return;
+            }
+            state.resetCoins += earnedResetCoins;
+            state.coins = 0;
+            state.pickaxeLevel = 0;
+            state.furnaceLevel = 0;
+            // 初始资金加成
+            const bonuses = getPerkBonuses();
+            state.coins += bonuses.startingGold;
+            saveGame();
+            updateUI();
+        }
+
+        function hardReset() {
+            if (!confirm('⚠️ 确定要清零所有进度吗？\n这将清除所有金币、升级、重置币、强化、时间和存档，不可恢复！')) return;
+            state.coins = 0;
+            state.totalCoinsEarned = 0;
+            state.pickaxeLevel = 0;
+            state.furnaceLevel = 0;
+            state.hourglassLevel = 0;
+            state.resetCoins = 0;
+            state.perks = { pickaxeMastery: 0, furnaceMastery: 0, startingGold: 0, priceDiscount: 0 };
+            state.accelerated = false;
+            speedMultiplier = 1;
+            state.elapsedSeconds = 0;
+            state.lastTimestamp = 0;
+            localStorage.removeItem('idleGameSave');
+            updateUI();
+        }
+
+        function endGame() {
+            if (state.coins < END_CURRENT_COINS) {
+                alert(`当前金币 ${Math.floor(state.coins)}，未达到 ${END_CURRENT_COINS}，继续努力！`);
+                return;
+            }
+            alert(`🏆 恭喜通关！\n当前金币：${Math.floor(state.coins)}\n总金币（历史）：${Math.floor(state.totalCoinsEarned)}\n当前每秒：${computeRate().toFixed(2)}\n矿镐：${state.pickaxeLevel} 级，熔炉：${state.furnaceLevel} 级，沙漏：${state.hourglassLevel} 级\n重置币：${state.resetCoins}\n游戏时间：${formatTime(state.elapsedSeconds)}\n\n感谢游玩！`);
+        }
+
+        function toggleAccelerate() {
+            state.accelerated = !state.accelerated;
+            speedMultiplier = state.accelerated ? 10 : 1;
+            saveGame();
+            updateUI();
+        }
+
+        // ---------- 存档 ----------
+        function saveGame() {
+            try {
+                const data = {
+                    coins: state.coins,
+                    totalCoinsEarned: state.totalCoinsEarned,
+                    pickaxeLevel: state.pickaxeLevel,
+                    furnaceLevel: state.furnaceLevel,
+                    hourglassLevel: state.hourglassLevel,
+                    resetCoins: state.resetCoins,
+                    perks: state.perks,
+                    accelerated: state.accelerated,
+                    elapsedSeconds: state.elapsedSeconds,
+                };
+                localStorage.setItem('idleGameSave', JSON.stringify(data));
+            } catch (e) {}
+        }
+
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem('idleGameSave');
+                if (!raw) return false;
+                const data = JSON.parse(raw);
+                state.coins = data.coins || 0;
+                state.totalCoinsEarned = data.totalCoinsEarned || 0;
+                state.pickaxeLevel = data.pickaxeLevel || 0;
+                state.furnaceLevel = data.furnaceLevel || 0;
+                state.hourglassLevel = data.hourglassLevel || 0;
+                state.resetCoins = data.resetCoins || 0;
+                state.perks = data.perks || { pickaxeMastery: 0, furnaceMastery: 0, startingGold: 0, priceDiscount: 0 };
+                state.accelerated = data.accelerated || false;
+                speedMultiplier = state.accelerated ? 10 : 1;
+                state.elapsedSeconds = data.elapsedSeconds || 0;
+                return true;
+            } catch (e) { return false; }
+        }
+
+        // ---------- 游戏循环 ----------
+        let accumulator = 0;
+
+        function gameLoop(timestamp) {
+            if (state.lastTimestamp === 0) {
+                state.lastTimestamp = timestamp;
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            let delta = (timestamp - state.lastTimestamp) / 1000;
+            state.lastTimestamp = timestamp;
+            if (delta > 1) delta = 1;
+
+            let effectiveDelta = delta * speedMultiplier;
+            accumulator += effectiveDelta;
+            while (accumulator >= 1) {
+                accumulator -= 1;
+                const rate = computeRate();
+                state.coins += rate;
+                state.totalCoinsEarned += rate;
+            }
+
+            state.elapsedSeconds += delta * speedMultiplier;
+
+            updateUI();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ---------- 初始化 ----------
+        function init() {
+            loadGame();
+            updateUI();
+
+            // 绑定事件
+            buyPickaxeBtn.addEventListener('click', buyPickaxe);
+            buyPickaxeAllBtn.addEventListener('click', buyMaxPickaxe);
+            buyFurnaceBtn.addEventListener('click', buyFurnace);
+            buyFurnaceAllBtn.addEventListener('click', buyMaxFurnace);
+            buyHourglassBtn.addEventListener('click', buyHourglass);
+            buyHourglassAllBtn.addEventListener('click', buyMaxHourglass);
+            resetBtn.addEventListener('click', performReset);
+            hardResetBtn.addEventListener('click', hardReset);
+            endBtn.addEventListener('click', endGame);
+            accelerateBtn.addEventListener('click', toggleAccelerate);
+
+            setInterval(saveGame, 10000);
+            window.addEventListener('beforeunload', saveGame);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        init();
+    </script>
+</body>
+</html>
