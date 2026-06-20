@@ -1,0 +1,47 @@
+# 工作流的名称
+name: Deploy static content to Pages
+
+# 触发工作流运行的条件
+on:
+  # 当代码被推送到默认分支（这里是 main）时触发
+  push:
+    branches: ["main"]
+  # 允许你从 GitHub Actions 页面手动触发运行
+  workflow_dispatch:
+
+# 设置 GitHub Token 的权限，允许部署到 Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 允许只有一个并发的部署任务，防止浪费资源
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+# 定义要执行的任务（jobs）
+jobs:
+  # 部署任务
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 检出你的仓库代码
+      - name: Checkout
+        uses: actions/checkout@v4
+      # 2. 配置 Pages 环境
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      # 3. 上传构建产物（你的整个仓库）
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 指定要上传的路径，'.' 代表整个仓库的根目录[reference:5]
+          path: '.'
+      # 4. 部署到 GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
